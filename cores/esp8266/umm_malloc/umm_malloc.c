@@ -781,7 +781,7 @@ clean:
 /*
  * Print memory contents starting from given `ptr`
  */
-static void dump_mem ( const unsigned char *ptr, size_t len ) {
+static void ICACHE_RAM_ATTR dump_mem ( const unsigned char *ptr, size_t len ) {
   while (len--) {
     printf(" 0x%.2x", (unsigned int)(*ptr++));
   }
@@ -790,7 +790,7 @@ static void dump_mem ( const unsigned char *ptr, size_t len ) {
 /*
  * Put poison data at given `ptr` and `poison_size`
  */
-static void put_poison( unsigned char *ptr, size_t poison_size ) {
+static void ICACHE_RAM_ATTR put_poison( unsigned char *ptr, size_t poison_size ) {
   memset(ptr, POISON_BYTE, poison_size);
 }
 
@@ -801,7 +801,7 @@ static void put_poison( unsigned char *ptr, size_t poison_size ) {
  * If poison is there, returns 1.
  * Otherwise, prints the appropriate message, and returns 0.
  */
-static int check_poison( const unsigned char *ptr, size_t poison_size,
+static int ICACHE_RAM_ATTR check_poison( const unsigned char *ptr, size_t poison_size,
     const char *where) {
   size_t i;
   int ok = 1;
@@ -828,7 +828,7 @@ static int check_poison( const unsigned char *ptr, size_t poison_size,
  * Check if a block is properly poisoned. Must be called only for non-free
  * blocks.
  */
-static int check_poison_block( umm_block *pblock ) {
+static int ICACHE_RAM_ATTR check_poison_block( umm_block *pblock ) {
   int ok = 1;
 
   if (pblock->header.used.next & UMM_FREELIST_MASK) {
@@ -864,7 +864,7 @@ clean:
  * Iterates through all blocks in the heap, and checks poison for all used
  * blocks.
  */
-static int check_poison_all_blocks(void) {
+static int ICACHE_RAM_ATTR check_poison_all_blocks(void) {
   int ok = 1;
   unsigned short int blockNo = 0;
 
@@ -897,7 +897,7 @@ static int check_poison_all_blocks(void) {
  *
  * `size_w_poison` is a size of the whole block, including a poison.
  */
-static void *get_poisoned( unsigned char *ptr, size_t size_w_poison ) {
+static void * ICACHE_RAM_ATTR get_poisoned( unsigned char *ptr, size_t size_w_poison ) {
   if (size_w_poison != 0 && ptr != NULL) {
 
     /* Put exact length of the user's chunk of memory */
@@ -922,7 +922,7 @@ static void *get_poisoned( unsigned char *ptr, size_t size_w_poison ) {
  *
  * Returns unpoisoned pointer, i.e. actual pointer to the allocated memory.
  */
-static void *get_unpoisoned( unsigned char *ptr ) {
+static void * ICACHE_RAM_ATTR get_unpoisoned( unsigned char *ptr ) {
   if (ptr != NULL) {
     unsigned short int c;
 
@@ -1096,7 +1096,7 @@ void ICACHE_FLASH_ATTR *umm_info( void *ptr, int force ) {
 
 /* ------------------------------------------------------------------------ */
 
-static unsigned short int umm_blocks( size_t size ) {
+static unsigned short int ICACHE_RAM_ATTR umm_blocks( size_t size ) {
 
   /*
    * The calculation of the block size is not too difficult, but there are
@@ -1132,7 +1132,7 @@ static unsigned short int umm_blocks( size_t size ) {
  *
  * Note that free pointers are NOT modified by this function.
  */
-static void umm_make_new_block( unsigned short int c,
+static void ICACHE_RAM_ATTR umm_make_new_block( unsigned short int c,
     unsigned short int blocks,
     unsigned short int cur_freemask, unsigned short int new_freemask ) {
 
@@ -1145,7 +1145,7 @@ static void umm_make_new_block( unsigned short int c,
 
 /* ------------------------------------------------------------------------ */
 
-static void umm_disconnect_from_free_list( unsigned short int c ) {
+static void ICACHE_RAM_ATTR umm_disconnect_from_free_list( unsigned short int c ) {
   /* Disconnect this block from the FREE list */
 
   UMM_NFREE(UMM_PFREE(c)) = UMM_NFREE(c);
@@ -1158,7 +1158,7 @@ static void umm_disconnect_from_free_list( unsigned short int c ) {
 
 /* ------------------------------------------------------------------------ */
 
-static void umm_assimilate_up( unsigned short int c ) {
+static void ICACHE_RAM_ATTR umm_assimilate_up( unsigned short int c ) {
 
   if( UMM_NBLOCK(UMM_NBLOCK(c)) & UMM_FREELIST_MASK ) {
     /*
@@ -1181,7 +1181,7 @@ static void umm_assimilate_up( unsigned short int c ) {
 
 /* ------------------------------------------------------------------------ */
 
-static unsigned short int umm_assimilate_down( unsigned short int c, unsigned short int freemask ) {
+static unsigned short int ICACHE_RAM_ATTR umm_assimilate_down( unsigned short int c, unsigned short int freemask ) {
 
   UMM_NBLOCK(UMM_PBLOCK(c)) = UMM_NBLOCK(c) | freemask;
   UMM_PBLOCK(UMM_NBLOCK(c)) = UMM_PBLOCK(c);
@@ -1191,7 +1191,7 @@ static unsigned short int umm_assimilate_down( unsigned short int c, unsigned sh
 
 /* ------------------------------------------------------------------------- */
 
-void umm_init( void ) {
+void ICACHE_RAM_ATTR umm_init( void ) {
   /* init heap pointer and size, and memset it to 0 */
   umm_heap = (umm_block *)UMM_MALLOC_CFG__HEAP_ADDR;
   umm_numblocks = (UMM_MALLOC_CFG__HEAP_SIZE / sizeof(umm_block));
@@ -1248,7 +1248,7 @@ void umm_init( void ) {
 
 /* ------------------------------------------------------------------------ */
 
-static void _umm_free( void *ptr ) {
+static void ICACHE_RAM_ATTR _umm_free( void *ptr ) {
 
   unsigned short int c;
 
@@ -1334,7 +1334,7 @@ static void _umm_free( void *ptr ) {
 
 /* ------------------------------------------------------------------------ */
 
-static void *_umm_malloc( size_t size ) {
+static void * ICACHE_RAM_ATTR _umm_malloc( size_t size ) {
   unsigned short int blocks;
   unsigned short int blockSize = 0;
 
@@ -1402,7 +1402,7 @@ static void *_umm_malloc( size_t size ) {
     blockSize = bestSize;
   }
 
-  if( UMM_NBLOCK(cf) & UMM_BLOCKNO_MASK && blockSize >= blocks ) {
+  if( (UMM_NBLOCK(cf) & UMM_BLOCKNO_MASK) && blockSize >= blocks ) {
     /*
      * This is an existing block in the memory heap, we just need to split off
      * what we need, unlink it from the free list and mark it as in use, and
@@ -1464,7 +1464,7 @@ static void *_umm_malloc( size_t size ) {
 
 /* ------------------------------------------------------------------------ */
 
-static void *_umm_realloc( void *ptr, size_t size ) {
+static void * ICACHE_RAM_ATTR _umm_realloc( void *ptr, size_t size ) {
 
   unsigned short int blocks;
   unsigned short int blockSize;
@@ -1641,7 +1641,7 @@ static void *_umm_realloc( void *ptr, size_t size ) {
 
 /* ------------------------------------------------------------------------ */
 
-void *umm_malloc( size_t size ) {
+void * ICACHE_RAM_ATTR umm_malloc( size_t size ) {
   void *ret;
 
   /* check poison of each blocks, if poisoning is enabled */
@@ -1665,7 +1665,7 @@ void *umm_malloc( size_t size ) {
 
 /* ------------------------------------------------------------------------ */
 
-void *umm_calloc( size_t num, size_t item_size ) {
+void * ICACHE_RAM_ATTR umm_calloc( size_t num, size_t item_size ) {
   void *ret;
   size_t size = item_size * num;
 
@@ -1690,7 +1690,7 @@ void *umm_calloc( size_t num, size_t item_size ) {
 
 /* ------------------------------------------------------------------------ */
 
-void *umm_realloc( void *ptr, size_t size ) {
+void * ICACHE_RAM_ATTR umm_realloc( void *ptr, size_t size ) {
   void *ret;
 
   ptr = GET_UNPOISONED(ptr);
@@ -1715,7 +1715,7 @@ void *umm_realloc( void *ptr, size_t size ) {
 
 /* ------------------------------------------------------------------------ */
 
-void umm_free( void *ptr ) {
+void ICACHE_RAM_ATTR umm_free( void *ptr ) {
 
   ptr = GET_UNPOISONED(ptr);
 
